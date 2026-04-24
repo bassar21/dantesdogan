@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kick Paraşüt Overlay</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: transparent;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* ── İNİŞ ALANI ── */
+    #landing-pad {
+      position: fixed;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    /* ── PARAŞÜT ── */
+    .parachute-wrapper {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fallDown 20s linear forwards;
+      z-index: 10;
+    }
+
+    @keyframes fallDown {
+      0%   { top: -280px; opacity: 0;   transform: translateX(0vw)   rotate(0deg);  }
+      3%   { opacity: 1; }
+      18%  { top:  6vh;   transform: translateX(38vw)  rotate(10deg); }
+      34%  { top: 20vh;   transform: translateX(-34vw) rotate(-9deg); }
+      50%  { top: 35vh;   transform: translateX(26vw)  rotate(7deg);  }
+      64%  { top: 48vh;   transform: translateX(-18vw) rotate(-5deg); }
+      76%  { top: 57vh;   transform: translateX(9vw)   rotate(2deg);  }
+      86%  { top: 64vh;   opacity: 1;   transform: translateX(0vw)   rotate(0deg);  }
+      93%  { top: 71vh;   opacity: 0.8; transform: translateX(0vw)   rotate(0deg);  }
+      100% { top: 75vh;   opacity: 0;   transform: translateX(0vw)   rotate(0deg);  }
+    }
+
+    .username-label {
+      background: rgba(0, 0, 0, 0.72);
+      border: 2px solid #53fc1b;
+      border-radius: 20px;
+      padding: 4px 16px;
+      color: #53fc1b;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 8px rgba(83, 252, 27, 0.9);
+      white-space: nowrap;
+      margin-bottom: 5px;
+    }
+
+    .rate-badge {
+      background: rgba(0,0,0,0.65);
+      border-radius: 10px;
+      padding: 3px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 4px;
+    }
+    .rate-low    { color: #ff4d4d; }
+    .rate-mid    { color: #ffa500; }
+    .rate-high   { color: #53fc1b; }
+    .rate-perfect{ color: #ffd700; text-shadow: 0 0 8px #ffd700; }
+
+    /* ── WINNER ── */
+    .winner-banner {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%) scale(0);
+      z-index: 9999; text-align: center; pointer-events: none;
+    }
+    .winner-banner.show {
+      animation:
+        winnerIn    0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards,
+        winnerPulse 1.2s ease-in-out 0.6s infinite,
+        winnerOut   0.8s ease-in 4.2s forwards;
+    }
+    @keyframes winnerIn {
+      0%   { transform: translate(-50%,-50%) scale(0) rotate(-8deg); opacity:0; }
+      100% { transform: translate(-50%,-50%) scale(1) rotate(0deg);  opacity:1; }
+    }
+    @keyframes winnerPulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1);    filter: brightness(1);   }
+      50%     { transform: translate(-50%,-50%) scale(1.06); filter: brightness(1.4); }
+    }
+    @keyframes winnerOut {
+      0%   { opacity:1; transform: translate(-50%,-50%) scale(1);   }
+      100% { opacity:0; transform: translate(-50%,-50%) scale(0.8); }
+    }
+    .winner-box {
+      background: linear-gradient(135deg,#1a0800,#3a1400,#1a0800);
+      border: 4px solid #ffd700; border-radius: 20px; padding: 28px 44px;
+      box-shadow: 0 0 50px #ffd700, 0 0 100px rgba(255,215,0,.4), inset 0 0 30px rgba(255,215,0,.1);
+      position: relative; overflow: hidden;
+    }
+    .winner-box::before {
+      content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+      background: conic-gradient(transparent 0deg,rgba(255,215,0,.3) 60deg,transparent 120deg,
+        rgba(255,215,0,.3) 180deg,transparent 240deg,rgba(255,215,0,.3) 300deg,transparent 360deg);
+      animation: spinBorder 3s linear infinite;
+    }
+    @keyframes spinBorder { to { transform: rotate(360deg); } }
+    .winner-sub   { position:relative;z-index:1;font-size:16px;font-weight:700;color:#ffd700;
+                    letter-spacing:5px;text-shadow:0 0 20px #ffd700;margin-bottom:6px; }
+    .winner-title { position:relative;z-index:1;font-size:40px;font-weight:900;color:#fff;
+                    letter-spacing:3px;text-shadow:0 0 20px #ffd700,0 0 50px #ffa500,2px 2px 0 #000; }
+    .winner-name  { position:relative;z-index:1;font-size:34px;font-weight:900;color:#ffd700;
+                    letter-spacing:2px;text-shadow:0 0 20px #ffd700,0 0 40px #ff8c00,2px 2px 0 #000;
+                    margin-top:6px; }
+
+    /* ── Konfeti ── */
+    .confetti-box { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;overflow:hidden; }
+
+  </style>
+</head>
+<body>
+
+<!-- ── İNİŞ ALANI ── -->
+<div id="landing-pad">
+  <svg width="280" height="90" viewBox="0 0 280 90" xmlns="http://www.w3.org/2000/svg">
+    <!-- Zemin gölgesi -->
+    <ellipse cx="140" cy="76" rx="128" ry="13" fill="rgba(0,0,0,0.35)"/>
+    <!-- Dış halka (kesik çizgi) -->
+    <ellipse cx="140" cy="62" rx="124" ry="26" fill="rgba(0,0,0,0.18)"
+             stroke="#53fc1b" stroke-width="2.2" stroke-dasharray="8,5"/>
+    <!-- Orta halka -->
+    <ellipse cx="140" cy="62" rx="82"  ry="17" fill="rgba(83,252,27,0.07)"
+             stroke="#53fc1b" stroke-width="2"/>
+    <!-- İç halka -->
+    <ellipse cx="140" cy="62" rx="42"  ry="9"  fill="rgba(83,252,27,0.14)"
+             stroke="#53fc1b" stroke-width="2"/>
+    <!-- Merkez nokta -->
+    <ellipse cx="140" cy="62" rx="12"  ry="4"  fill="#53fc1b"/>
+    <!-- Artı çizgileri -->
+    <line x1="140" y1="36" x2="140" y2="88" stroke="#53fc1b" stroke-width="1.5" opacity="0.65"/>
+    <line x1="16"  y1="62" x2="264" y2="62" stroke="#53fc1b" stroke-width="1.5" opacity="0.65"/>
+  </svg>
+</div>
+
+<div class="confetti-box" id="confetti-box"></div>
+
+<div class="winner-banner" id="winner-banner">
+  <div class="winner-box">
+    <div class="winner-sub">&#11088; TEBRİKLER &#11088;</div>
+    <div class="winner-title">WINNER PASSENGER</div>
+    <div class="winner-name" id="winner-name">@username</div>
+  </div>
+</div>
+
+
+<script>
+const CONFIG = {
+  command: '!atla',
+  maxParachutes: 8,
+  kickChannel: 'bassar-21',
+};
+
+const CHUTE_PALETTES = [
+  ['#ff3cac','#ffffff'],   // neon pembe - beyaz
+  ['#00d2ff','#ffffff'],   // siyan - beyaz
+  ['#f7971e','#1a1a2e'],   // turuncu - koyu lacivert
+  ['#a855f7','#f0abfc'],   // mor - açık lila
+  ['#00b09b','#ffffff'],   // zümrüt yeşil - beyaz
+  ['#ff6b6b','#ffd93d'],   // mercan - sarı
+  ['#0f3460','#e94560'],   // lacivert - kırmızı
+  ['#43e97b','#38f9d7'],   // yeşil - turkuaz
+  ['#fa709a','#fee140'],   // pembe - altın sarısı
+  ['#30cfd0','#1a1a2e'],   // turkuaz - koyu
+  ['#f093fb','#f5576c'],   // leylak - kırmızı
+  ['#4facfe','#00f2fe'],   // mavi - açık mavi
+];
+
+// ── SVG: Paraşüt + Köşeli Köpek ─────────────────────────────────
+function buildSVG(c1, c2) {
+  const gid   = 'g'    + c1.slice(1);
+  const clipid = 'clip' + c1.slice(1);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -28 160 258" width="140" height="220">
+  <defs>
+    <radialGradient id="${gid}" cx="38%" cy="28%" r="62%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.40)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.12)"/>
+    </radialGradient>
+    <clipPath id="${clipid}">
+      <path d="M8,82 Q80,-22 152,82 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- ══ KUBBE ══ -->
+  <path d="M8,82 Q80,-22 152,82 Z" fill="${c1}"/>
+  <g clip-path="url(#${clipid})">
+    <path d="M80,82 L8,82   Q24,18  80,4   Z" fill="${c2}" opacity="0.55"/>
+    <path d="M80,82 L80,4   Q104,6  124,22 Z" fill="${c1}"/>
+    <path d="M80,82 L124,22 Q146,48 152,82 Z" fill="${c2}" opacity="0.55"/>
+    <path d="M80,82 L8,82   Q32,52  56,18  Z" fill="${c1}" opacity="0.35"/>
+    <path d="M80,82 L56,18  Q68,6   80,4   Z" fill="${c2}" opacity="0.35"/>
+    <path d="M80,82 L80,4   Q94,5  104,10  Z" fill="${c1}" opacity="0.35"/>
+  </g>
+  <path d="M8,82 Q80,-22 152,82 Z" fill="url(#${gid})"/>
+  <path d="M8,82 Q80,96 152,82"    fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1.5"/>
+  <path d="M8,82 Q80,-22 152,82 Z" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.8"/>
+
+  <!-- ══ İPLER ══ -->
+  <line x1="22"  y1="80" x2="68"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
+  <line x1="46"  y1="68" x2="73"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
+  <line x1="80"  y1="62" x2="80"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
+  <line x1="114" y1="68" x2="87"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
+  <line x1="138" y1="80" x2="92"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
+
+  <!-- ══ PANDA ══ -->
+
+  <!-- Sol yuvarlak kulak (siyah) -->
+  <ellipse cx="57" cy="131" rx="13" ry="12" fill="#1a1a1a"/>
+  <ellipse cx="57" cy="131" rx="8"  ry="7.5" fill="#333333"/>
+
+  <!-- Sağ yuvarlak kulak (siyah) -->
+  <ellipse cx="103" cy="131" rx="13" ry="12" fill="#1a1a1a"/>
+  <ellipse cx="103" cy="131" rx="8"  ry="7.5" fill="#333333"/>
+
+  <!-- Baş — beyaz kare -->
+  <rect x="46" y="132" width="68" height="58" rx="10"
+        fill="#f5f5f5" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
+
+  <!-- Sol göz lekesi (karakteristik panda lekesi) -->
+  <ellipse cx="65" cy="151" rx="12" ry="11" fill="#1a1a1a" transform="rotate(-15 65 151)"/>
+  <!-- Sol göz -->
+  <ellipse cx="65" cy="152" rx="6"  ry="6"  fill="#0a0a0a"/>
+  <ellipse cx="67" cy="150" rx="2.5" ry="2.5" fill="#ffffff"/>
+
+  <!-- Sağ göz lekesi -->
+  <ellipse cx="95" cy="151" rx="12" ry="11" fill="#1a1a1a" transform="rotate(15 95 151)"/>
+  <!-- Sağ göz -->
+  <ellipse cx="95" cy="152" rx="6"  ry="6"  fill="#0a0a0a"/>
+  <ellipse cx="97" cy="150" rx="2.5" ry="2.5" fill="#ffffff"/>
+
+  <!-- Burun bölgesi (krem) -->
+  <ellipse cx="80" cy="168" rx="16" ry="11" fill="#ececec"/>
+
+  <!-- Burun -->
+  <ellipse cx="80" cy="163" rx="9" ry="6" fill="#1a1a1a"/>
+  <ellipse cx="77" cy="161" rx="2.8" ry="1.8" fill="rgba(255,255,255,0.30)"/>
+
+  <!-- Ağız -->
+  <path d="M70,171 Q80,180 90,171"
+        fill="none" stroke="#555" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Yanak sol (pembe) -->
+  <ellipse cx="54" cy="163" rx="8" ry="5.5" fill="rgba(255,150,150,0.30)"/>
+  <!-- Yanak sağ -->
+  <ellipse cx="106" cy="163" rx="8" ry="5.5" fill="rgba(255,150,150,0.30)"/>
+
+  <!-- Dil -->
+  <ellipse cx="80" cy="179" rx="7" ry="6" fill="#ff8fab"/>
+  <line x1="80" y1="173" x2="80" y2="185"
+        stroke="rgba(180,30,60,0.4)" stroke-width="1.5"/>
+</svg>`;
+}
+
+// ── PARAŞÜT OLUŞTUR ──────────────────────────────────────────────
+let activeCount = 0;
+
+function spawnParachute(username, forcedRate) {
+  if (activeCount >= CONFIG.maxParachutes) return;
+  activeCount++;
+  document.getElementById('landing-pad').style.opacity = '0.88';
+
+  let leftPct, rate;
+
+  if (forcedRate === 100) {
+    // %100 test: tam merkeze indir
+    leftPct = 50;
+    rate    = 100;
+  } else {
+    // Rastgele yatay konum, merkeze yakınlık = başarı oranı
+    const spread = rand(-34, 34);
+    leftPct = Math.max(4, Math.min(84, 50 + spread));
+    const dist = Math.abs(leftPct - 50);          // 0 (tam merkez) → 34 (kenar)
+    rate = Math.max(1, Math.round(100 - (dist / 34) * 99));
+  }
+
+  const palette = CHUTE_PALETTES[rand(0, CHUTE_PALETTES.length - 1)];
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'parachute-wrapper';
+  wrapper.style.left = `calc(${leftPct}% - 70px)`;
+
+  const label = document.createElement('div');
+  label.className = 'username-label';
+  label.textContent = '@' + username;
+
+  const svgWrap = document.createElement('div');
+  svgWrap.innerHTML = buildSVG(palette[0], palette[1]);
+
+  const badge = document.createElement('div');
+  badge.className = 'rate-badge';
+  badge.style.opacity = '0';
+  badge.style.transition = 'opacity 0.4s ease';
+  const sp = document.createElement('span');
+  sp.className = getRateClass(rate);
+  sp.textContent = rate + '%';
+  badge.appendChild(document.createTextNode('Başarı: '));
+  badge.appendChild(sp);
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(svgWrap);
+  wrapper.appendChild(badge);
+  document.body.appendChild(wrapper);
+
+  // Badge'i iniş anında göster (%86 = 20s * 0.86 ≈ 17.2s)
+  const ANIM_DURATION = 20000;
+  setTimeout(() => { badge.style.opacity = '1'; }, ANIM_DURATION * 0.86);
+
+  wrapper.addEventListener('animationend', () => {
+    wrapper.remove();
+    activeCount--;
+    if (activeCount === 0) document.getElementById('landing-pad').style.opacity = '0';
+  });
+
+  if (rate === 100) setTimeout(() => showWinner(username), ANIM_DURATION * 0.86 + 500);
+}
+
+// ── WINNER ───────────────────────────────────────────────────────
+let winnerTimer = null;
+
+function showWinner(username) {
+  const banner = document.getElementById('winner-banner');
+  document.getElementById('winner-name').textContent = '@' + username;
+  if (winnerTimer) { clearTimeout(winnerTimer); banner.classList.remove('show'); void banner.offsetWidth; }
+  banner.classList.add('show');
+  spawnConfetti();
+  winnerTimer = setTimeout(() => { banner.classList.remove('show'); clearConfetti(); winnerTimer = null; }, 5000);
+}
+
+// ── KONFETİ ──────────────────────────────────────────────────────
+const CF_COLORS = ['#ffd700','#ff4500','#53fc1b','#00bfff','#ff69b4','#fff','#ff8c00','#adff2f'];
+let confettiTimer = null;
+
+function spawnConfetti() {
+  clearConfetti();
+  if (!document.getElementById('cf-style')) {
+    const s = document.createElement('style');
+    s.id = 'cf-style';
+    s.textContent = `@keyframes cfFall{0%{top:-20px;opacity:1;transform:rotate(0) translateX(0)}
+      25%{transform:rotate(90deg) translateX(18px)}50%{transform:rotate(180deg) translateX(-18px)}
+      75%{transform:rotate(270deg) translateX(18px)}100%{top:110vh;opacity:0;transform:rotate(360deg) translateX(0)}}`;
+    document.head.appendChild(s);
+  }
+  const box = document.getElementById('confetti-box');
+  confettiTimer = setInterval(() => {
+    for (let i = 0; i < 7; i++) {
+      const p   = document.createElement('div');
+      const sz  = rand(6,14), left = rand(0,100);
+      const dur = (rand(25,50)/10).toFixed(1), del = (Math.random()*.5).toFixed(2);
+      const shapes = ['50%','0%','50% 0'];
+      p.style.cssText = `position:absolute;width:${sz}px;height:${sz}px;left:${left}%;top:-20px;
+        background:${CF_COLORS[rand(0,CF_COLORS.length-1)]};border-radius:${shapes[rand(0,2)]};opacity:0;
+        animation:cfFall ${dur}s ${del}s linear forwards;`;
+      box.appendChild(p);
+      setTimeout(() => p.remove(), (parseFloat(dur)+parseFloat(del)+.5)*1000);
+    }
+  }, 140);
+}
+
+function clearConfetti() {
+  if (confettiTimer) { clearInterval(confettiTimer); confettiTimer = null; }
+  document.getElementById('confetti-box').innerHTML = '';
+}
+
+// ── YARDIMCI ─────────────────────────────────────────────────────
+function rand(min, max) { return Math.floor(Math.random()*(max-min+1))+min; }
+
+function getRateClass(r) {
+  if (r === 100) return 'rate-perfect';
+  if (r >= 70)   return 'rate-high';
+  if (r >= 40)   return 'rate-mid';
+  return 'rate-low';
+}
+
+function handleChatMessage(username, message) {
+  if (message.trim().toLowerCase() === CONFIG.command.toLowerCase()) spawnParachute(username);
+}
+
+
+// ── KICK WEBSOCKET ────────────────────────────────────────────────
+// Gerçek yayın için bu satırın başındaki // işaretini kaldır:
+// connectToKick(CONFIG.kickChannel);
+
+function connectToKick(channelName) {
+  const wsUrl = `wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=7.0.3&flash=false`;
+  let socket, pingTimer;
+  function connect() {
+    socket = new WebSocket(wsUrl);
+    socket.onopen = () => {
+      pingTimer = setInterval(() => socket.readyState===1 && socket.send(JSON.stringify({event:'pusher:ping',data:{}})), 30000);
+    };
+    socket.onmessage = (e) => {
+      try {
+        const p = JSON.parse(e.data);
+        if (p.event === 'pusher:connection_established')
+          socket.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:`chatrooms.${channelName}.v2`}}));
+        if (p.event === 'App\\Events\\ChatMessageEvent') {
+          const d = JSON.parse(p.data);
+          handleChatMessage(d?.sender?.username || d?.user?.username || 'unknown', d?.content || '');
+        }
+      } catch(_){}
+    };
+    socket.onclose = () => { clearInterval(pingTimer); setTimeout(connect, 5000); };
+  }
+  connect();
+}
+</script>
+</body>
+</html>
