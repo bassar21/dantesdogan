@@ -166,7 +166,7 @@
 const CONFIG = {
   command: '!atla',
   maxParachutes: 8,
-  kickChannel: 'bassar-21',
+  kickChannel: 'dantesofficial',
 };
 
 const CHUTE_PALETTES = [
@@ -272,24 +272,29 @@ function buildSVG(c1, c2) {
 // ── PARAŞÜT OLUŞTUR ──────────────────────────────────────────────
 let activeCount = 0;
 
-function spawnParachute(username, forcedRate) {
+function spawnParachute(username) {
   if (activeCount >= CONFIG.maxParachutes) return;
   activeCount++;
   document.getElementById('landing-pad').style.opacity = '0.88';
 
   let leftPct, rate;
 
-  if (forcedRate === 100) {
-    // %100 test: tam merkeze indir
-    leftPct = 50;
-    rate    = 100;
-  } else {
-    // Rastgele yatay konum, merkeze yakınlık = başarı oranı
-    const spread = rand(-34, 34);
-    leftPct = Math.max(4, Math.min(84, 50 + spread));
-    const dist = Math.abs(leftPct - 50);          // 0 (tam merkez) → 34 (kenar)
-    rate = Math.max(1, Math.round(100 - (dist / 34) * 99));
-  }
+  // Rastgele yatay iniş noktası
+  const spread = rand(-40, 40);
+  leftPct = Math.max(2, Math.min(88, 50 + spread));
+
+  // ── Başarı oranı: paraşüt merkezinin pist merkezine PİKSEL mesafesine göre ──
+  // Landing pad SVG'si: dış halka rx=124px, orta rx=82px, iç rx=42px, merkez rx=12px
+  const screenW    = window.innerWidth || 1920;
+  const padCenter  = screenW / 2;                          // pisin ekran ortası
+  const chutePx    = (leftPct / 100) * screenW;            // paraşüt merkezi (px)
+  const distPx     = Math.abs(chutePx - padCenter);        // pist merkezine mesafe
+
+  if      (distPx <= 12)  rate = 100;                                                     // tam merkez noktası
+  else if (distPx <= 42)  rate = Math.round(99 - ((distPx - 12)  / 30)  * 14);           // iç halka  → %99-%85
+  else if (distPx <= 82)  rate = Math.round(85 - ((distPx - 42)  / 40)  * 30);           // orta halka→ %84-%55
+  else if (distPx <= 124) rate = Math.round(55 - ((distPx - 82)  / 42)  * 35);           // dış halka → %54-%20
+  else                    rate = Math.max(1, Math.round(19 - ((distPx - 124) / 400) * 18)); // pist dışı → %19-%1
 
   const palette = CHUTE_PALETTES[rand(0, CHUTE_PALETTES.length - 1)];
 
@@ -395,29 +400,55 @@ function handleChatMessage(username, message) {
 
 
 // ── KICK WEBSOCKET ────────────────────────────────────────────────
-// Gerçek yayın için bu satırın başındaki // işaretini kaldır:
-// connectToKick(CONFIG.kickChannel);
+connectToKick(CONFIG.kickChannel);
 
-function connectToKick(channelName) {
+async function connectToKick(channelName) {
+  // Kick, WebSocket için sayısal chatroom ID gerektirir — önce API'den çek
+  let chatroomId;
+  try {
+    const res  = await fetch(`https://kick.com/api/v2/channels/${channelName}`);
+    const data = await res.json();
+    chatroomId = data?.chatroom?.id;
+  } catch(e) {
+    console.warn('Kick API ulaşılamadı, 10sn sonra tekrar denenecek:', e);
+    setTimeout(() => connectToKick(channelName), 10000);
+    return;
+  }
+
+  if (!chatroomId) {
+    console.error('Chatroom ID bulunamadı — kanal adını kontrol et:', channelName);
+    return;
+  }
+
+  console.log(`Kick bağlantısı kuruluyor — kanal: ${channelName}, chatroom ID: ${chatroomId}`);
+
   const wsUrl = `wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=7.0.3&flash=false`;
   let socket, pingTimer;
+
   function connect() {
     socket = new WebSocket(wsUrl);
     socket.onopen = () => {
+      console.log('WebSocket açık');
       pingTimer = setInterval(() => socket.readyState===1 && socket.send(JSON.stringify({event:'pusher:ping',data:{}})), 30000);
     };
     socket.onmessage = (e) => {
       try {
         const p = JSON.parse(e.data);
-        if (p.event === 'pusher:connection_established')
-          socket.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:`chatrooms.${channelName}.v2`}}));
+        if (p.event === 'pusher:connection_established') {
+          socket.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:`chatrooms.${chatroomId}.v2`}}));
+          console.log(`Chatroom ${chatroomId} kanalına abone olundu`);
+        }
         if (p.event === 'App\\Events\\ChatMessageEvent') {
           const d = JSON.parse(p.data);
           handleChatMessage(d?.sender?.username || d?.user?.username || 'unknown', d?.content || '');
         }
       } catch(_){}
     };
-    socket.onclose = () => { clearInterval(pingTimer); setTimeout(connect, 5000); };
+    socket.onclose = () => {
+      console.warn('WebSocket kapandı, 5sn sonra yeniden bağlanılacak');
+      clearInterval(pingTimer);
+      setTimeout(connect, 5000);
+    };
   }
   connect();
 }
