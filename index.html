@@ -148,6 +148,11 @@
     <!-- Artı çizgileri -->
     <line x1="140" y1="36" x2="140" y2="88" stroke="#53fc1b" stroke-width="1.5" opacity="0.65"/>
     <line x1="16"  y1="62" x2="264" y2="62" stroke="#53fc1b" stroke-width="1.5" opacity="0.65"/>
+    <!-- Kanal adı -->
+    <text x="140" y="62" text-anchor="middle" dominant-baseline="central"
+          font-size="10.5" font-weight="900" fill="#53fc1b"
+          stroke="rgba(0,0,0,0.85)" stroke-width="3" paint-order="stroke"
+          font-family="'Segoe UI',Arial,sans-serif" letter-spacing="0.8">DANTESOFFİCİAL</text>
   </svg>
 </div>
 
@@ -184,10 +189,116 @@ const CHUTE_PALETTES = [
   ['#4facfe','#00f2fe'],   // mavi - açık mavi
 ];
 
-// ── SVG: Paraşüt + Köşeli Köpek ─────────────────────────────────
+// ── SVG: Paraşüt + Random Karakter ──────────────────────────────
 function buildSVG(c1, c2) {
-  const gid   = 'g'    + c1.slice(1);
+  const gid    = 'g'    + c1.slice(1);
   const clipid = 'clip' + c1.slice(1);
+
+  // ── 5 karakter tanımı ──────────────────────────────────────────
+  const chars = [
+
+    // 0 ── PANDA ──────────────────────────────────────────────────
+    `<ellipse cx="57" cy="131" rx="13" ry="12" fill="#1a1a1a"/>
+    <ellipse cx="57" cy="131" rx="8" ry="7.5" fill="#333"/>
+    <ellipse cx="103" cy="131" rx="13" ry="12" fill="#1a1a1a"/>
+    <ellipse cx="103" cy="131" rx="8" ry="7.5" fill="#333"/>
+    <rect x="46" y="132" width="68" height="58" rx="10" fill="#f5f5f5" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
+    <ellipse cx="65" cy="151" rx="12" ry="11" fill="#1a1a1a" transform="rotate(-15 65 151)"/>
+    <ellipse cx="65" cy="152" rx="6" ry="6" fill="#0a0a0a"/>
+    <ellipse cx="67" cy="150" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="95" cy="151" rx="12" ry="11" fill="#1a1a1a" transform="rotate(15 95 151)"/>
+    <ellipse cx="95" cy="152" rx="6" ry="6" fill="#0a0a0a"/>
+    <ellipse cx="97" cy="150" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="80" cy="168" rx="16" ry="11" fill="#ececec"/>
+    <ellipse cx="80" cy="163" rx="9" ry="6" fill="#1a1a1a"/>
+    <ellipse cx="77" cy="161" rx="2.8" ry="1.8" fill="rgba(255,255,255,0.3)"/>
+    <path d="M70,171 Q80,180 90,171" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="54" cy="163" rx="8" ry="5.5" fill="rgba(255,150,150,0.3)"/>
+    <ellipse cx="106" cy="163" rx="8" ry="5.5" fill="rgba(255,150,150,0.3)"/>
+    <ellipse cx="80" cy="179" rx="7" ry="6" fill="#ff8fab"/>
+    <line x1="80" y1="173" x2="80" y2="185" stroke="rgba(180,30,60,0.4)" stroke-width="1.5"/>`,
+
+    // 1 ── GOLDEN RETRIEVER ───────────────────────────────────────
+    `<ellipse cx="50" cy="157" rx="13" ry="27" fill="#B8721E" transform="rotate(-8 50 157)"/>
+    <ellipse cx="110" cy="157" rx="13" ry="27" fill="#B8721E" transform="rotate(8 110 157)"/>
+    <rect x="48" y="132" width="64" height="56" rx="20" fill="#D9923A" stroke="rgba(0,0,0,0.12)" stroke-width="1.5"/>
+    <ellipse cx="80" cy="137" rx="22" ry="7" fill="rgba(160,100,20,0.25)"/>
+    <ellipse cx="66" cy="150" rx="6.5" ry="6.5" fill="#1a1a1a"/>
+    <ellipse cx="68" cy="148" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="94" cy="150" rx="6.5" ry="6.5" fill="#1a1a1a"/>
+    <ellipse cx="96" cy="148" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="80" cy="168" rx="17" ry="12" fill="#C47C2A"/>
+    <ellipse cx="80" cy="162" rx="9" ry="6" fill="#1a1a1a"/>
+    <ellipse cx="77" cy="160" rx="2.8" ry="1.8" fill="rgba(255,255,255,0.35)"/>
+    <path d="M70,169 Q80,178 90,169" fill="none" stroke="#7A4A1A" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="55" cy="162" rx="8" ry="5.5" fill="rgba(220,140,60,0.35)"/>
+    <ellipse cx="105" cy="162" rx="8" ry="5.5" fill="rgba(220,140,60,0.35)"/>
+    <ellipse cx="80" cy="177" rx="7" ry="5.5" fill="#ff8fab"/>
+    <line x1="80" y1="172" x2="80" y2="183" stroke="rgba(180,30,60,0.4)" stroke-width="1.5"/>`,
+
+    // 2 ── KEDİ ───────────────────────────────────────────────────
+    `<polygon points="54,134 46,110 70,130" fill="#C0C0C0"/>
+    <polygon points="56,133 50,116 66,130" fill="#FFB6C1" opacity="0.8"/>
+    <polygon points="106,134 114,110 90,130" fill="#C0C0C0"/>
+    <polygon points="104,133 110,116 94,130" fill="#FFB6C1" opacity="0.8"/>
+    <rect x="46" y="132" width="68" height="58" rx="22" fill="#C8C8C8" stroke="rgba(0,0,0,0.12)" stroke-width="1.5"/>
+    <ellipse cx="65" cy="150" rx="7" ry="6.5" fill="#45C152"/>
+    <ellipse cx="65" cy="150" rx="2.2" ry="5.5" fill="#0a0a0a"/>
+    <ellipse cx="63.5" cy="148" rx="1.5" ry="1.5" fill="#fff"/>
+    <ellipse cx="95" cy="150" rx="7" ry="6.5" fill="#45C152"/>
+    <ellipse cx="95" cy="150" rx="2.2" ry="5.5" fill="#0a0a0a"/>
+    <ellipse cx="93.5" cy="148" rx="1.5" ry="1.5" fill="#fff"/>
+    <polygon points="80,162 75,167 85,167" fill="#FFB6C1"/>
+    <line x1="80" y1="167" x2="80" y2="172" stroke="#aaa" stroke-width="1.5"/>
+    <path d="M73,172 Q80,178 87,172" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="43" y1="163" x2="71" y2="165" stroke="rgba(160,160,160,0.8)" stroke-width="1.2"/>
+    <line x1="43" y1="169" x2="71" y2="168" stroke="rgba(160,160,160,0.8)" stroke-width="1.2"/>
+    <line x1="117" y1="163" x2="89" y2="165" stroke="rgba(160,160,160,0.8)" stroke-width="1.2"/>
+    <line x1="117" y1="169" x2="89" y2="168" stroke="rgba(160,160,160,0.8)" stroke-width="1.2"/>
+    <ellipse cx="54" cy="163" rx="8" ry="5.5" fill="rgba(255,180,180,0.25)"/>
+    <ellipse cx="106" cy="163" rx="8" ry="5.5" fill="rgba(255,180,180,0.25)"/>`,
+
+    // 3 ── TİLKİ ──────────────────────────────────────────────────
+    `<polygon points="54,134 46,108 72,130" fill="#D4601A"/>
+    <polygon points="56,132 50,115 68,130" fill="#FFF0D0" opacity="0.9"/>
+    <polygon points="106,134 114,108 88,130" fill="#D4601A"/>
+    <polygon points="104,132 110,115 92,130" fill="#FFF0D0" opacity="0.9"/>
+    <rect x="46" y="132" width="68" height="58" rx="16" fill="#E07028" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
+    <ellipse cx="80" cy="174" rx="24" ry="17" fill="#FFF0D0"/>
+    <ellipse cx="65" cy="149" rx="6.5" ry="6.5" fill="#1a1a1a"/>
+    <ellipse cx="67" cy="147" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="95" cy="149" rx="6.5" ry="6.5" fill="#1a1a1a"/>
+    <ellipse cx="97" cy="147" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="80" cy="163" rx="7.5" ry="5.5" fill="#1a1a1a"/>
+    <ellipse cx="77.5" cy="161.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.35)"/>
+    <path d="M70,169 Q80,178 90,169" fill="none" stroke="#8B4513" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="54" cy="160" rx="8" ry="5.5" fill="rgba(220,100,30,0.25)"/>
+    <ellipse cx="106" cy="160" rx="8" ry="5.5" fill="rgba(220,100,30,0.25)"/>
+    <ellipse cx="80" cy="177" rx="7" ry="5.5" fill="#ff8fab"/>
+    <line x1="80" y1="172" x2="80" y2="183" stroke="rgba(180,30,60,0.4)" stroke-width="1.5"/>`,
+
+    // 4 ── AYI ────────────────────────────────────────────────────
+    `<ellipse cx="57" cy="131" rx="14" ry="13" fill="#4A2C0A"/>
+    <ellipse cx="57" cy="131" rx="9" ry="8.5" fill="#7B4A1A"/>
+    <ellipse cx="103" cy="131" rx="14" ry="13" fill="#4A2C0A"/>
+    <ellipse cx="103" cy="131" rx="9" ry="8.5" fill="#7B4A1A"/>
+    <rect x="46" y="132" width="68" height="58" rx="14" fill="#7B4A1A" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+    <ellipse cx="80" cy="170" rx="20" ry="14" fill="#A06030"/>
+    <ellipse cx="65" cy="150" rx="6" ry="6" fill="#1a1a1a"/>
+    <ellipse cx="67" cy="148" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="95" cy="150" rx="6" ry="6" fill="#1a1a1a"/>
+    <ellipse cx="97" cy="148" rx="2.5" ry="2.5" fill="#fff"/>
+    <ellipse cx="80" cy="163" rx="9" ry="6.5" fill="#1a1a1a"/>
+    <ellipse cx="77" cy="161" rx="2.8" ry="1.8" fill="rgba(255,255,255,0.3)"/>
+    <path d="M70,170 Q80,180 90,170" fill="none" stroke="#3a1a08" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="54" cy="163" rx="8" ry="5.5" fill="rgba(160,80,30,0.3)"/>
+    <ellipse cx="106" cy="163" rx="8" ry="5.5" fill="rgba(160,80,30,0.3)"/>
+    <ellipse cx="80" cy="179" rx="7" ry="6" fill="#ff8fab"/>
+    <line x1="80" y1="173" x2="80" y2="185" stroke="rgba(180,30,60,0.4)" stroke-width="1.5"/>`,
+  ];
+
+  const char = chars[rand(0, chars.length - 1)];
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -28 160 258" width="140" height="220">
   <defs>
     <radialGradient id="${gid}" cx="38%" cy="28%" r="62%">
@@ -198,7 +309,6 @@ function buildSVG(c1, c2) {
       <path d="M8,82 Q80,-22 152,82 Z"/>
     </clipPath>
   </defs>
-
   <!-- ══ KUBBE ══ -->
   <path d="M8,82 Q80,-22 152,82 Z" fill="${c1}"/>
   <g clip-path="url(#${clipid})">
@@ -212,60 +322,13 @@ function buildSVG(c1, c2) {
   <path d="M8,82 Q80,-22 152,82 Z" fill="url(#${gid})"/>
   <path d="M8,82 Q80,96 152,82"    fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1.5"/>
   <path d="M8,82 Q80,-22 152,82 Z" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.8"/>
-
   <!-- ══ İPLER ══ -->
   <line x1="22"  y1="80" x2="68"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
   <line x1="46"  y1="68" x2="73"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
   <line x1="80"  y1="62" x2="80"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
   <line x1="114" y1="68" x2="87"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
   <line x1="138" y1="80" x2="92"  y2="138" stroke="rgba(220,220,220,0.9)" stroke-width="1.3"/>
-
-  <!-- ══ PANDA ══ -->
-
-  <!-- Sol yuvarlak kulak (siyah) -->
-  <ellipse cx="57" cy="131" rx="13" ry="12" fill="#1a1a1a"/>
-  <ellipse cx="57" cy="131" rx="8"  ry="7.5" fill="#333333"/>
-
-  <!-- Sağ yuvarlak kulak (siyah) -->
-  <ellipse cx="103" cy="131" rx="13" ry="12" fill="#1a1a1a"/>
-  <ellipse cx="103" cy="131" rx="8"  ry="7.5" fill="#333333"/>
-
-  <!-- Baş — beyaz kare -->
-  <rect x="46" y="132" width="68" height="58" rx="10"
-        fill="#f5f5f5" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
-
-  <!-- Sol göz lekesi (karakteristik panda lekesi) -->
-  <ellipse cx="65" cy="151" rx="12" ry="11" fill="#1a1a1a" transform="rotate(-15 65 151)"/>
-  <!-- Sol göz -->
-  <ellipse cx="65" cy="152" rx="6"  ry="6"  fill="#0a0a0a"/>
-  <ellipse cx="67" cy="150" rx="2.5" ry="2.5" fill="#ffffff"/>
-
-  <!-- Sağ göz lekesi -->
-  <ellipse cx="95" cy="151" rx="12" ry="11" fill="#1a1a1a" transform="rotate(15 95 151)"/>
-  <!-- Sağ göz -->
-  <ellipse cx="95" cy="152" rx="6"  ry="6"  fill="#0a0a0a"/>
-  <ellipse cx="97" cy="150" rx="2.5" ry="2.5" fill="#ffffff"/>
-
-  <!-- Burun bölgesi (krem) -->
-  <ellipse cx="80" cy="168" rx="16" ry="11" fill="#ececec"/>
-
-  <!-- Burun -->
-  <ellipse cx="80" cy="163" rx="9" ry="6" fill="#1a1a1a"/>
-  <ellipse cx="77" cy="161" rx="2.8" ry="1.8" fill="rgba(255,255,255,0.30)"/>
-
-  <!-- Ağız -->
-  <path d="M70,171 Q80,180 90,171"
-        fill="none" stroke="#555" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- Yanak sol (pembe) -->
-  <ellipse cx="54" cy="163" rx="8" ry="5.5" fill="rgba(255,150,150,0.30)"/>
-  <!-- Yanak sağ -->
-  <ellipse cx="106" cy="163" rx="8" ry="5.5" fill="rgba(255,150,150,0.30)"/>
-
-  <!-- Dil -->
-  <ellipse cx="80" cy="179" rx="7" ry="6" fill="#ff8fab"/>
-  <line x1="80" y1="173" x2="80" y2="185"
-        stroke="rgba(180,30,60,0.4)" stroke-width="1.5"/>
+  ${char}
 </svg>`;
 }
 
@@ -279,8 +342,15 @@ function spawnParachute(username) {
 
   let leftPct, rate;
 
-  // Rastgele yatay iniş noktası
-  const spread = rand(-40, 40);
+  // %80 piste in → rekabet yüksek | %20 pist dışı → nadir hata
+  const padPct = (124 / (window.innerWidth || 1920)) * 100; // dış halka % genişliği
+  let spread;
+  if (Math.random() < 0.80) {
+    spread = (Math.random() * 2 - 1) * padPct * 0.92;  // pist içi (halka sınırının %92'si)
+  } else {
+    const mag = padPct + rand(2, 26);                   // pist dışı
+    spread    = (Math.random() < 0.5 ? -1 : 1) * mag;
+  }
   leftPct = Math.max(2, Math.min(88, 50 + spread));
 
   // ── Başarı oranı: paraşüt merkezinin pist merkezine PİKSEL mesafesine göre ──
