@@ -342,29 +342,25 @@ function spawnParachute(username) {
 
   let leftPct, rate;
 
-  // %80 piste in → rekabet yüksek | %20 pist dışı → nadir hata
-  const padPct = (124 / (window.innerWidth || 1920)) * 100; // dış halka % genişliği
+  // Dağılım: %90 merkeze çok yakın, %9 pad içi kenar, %1 dışarı
+  const r = Math.random();
   let spread;
-  if (Math.random() < 0.80) {
-    spread = (Math.random() * 2 - 1) * padPct * 0.92;  // pist içi (halka sınırının %92'si)
-  } else {
-    const mag = padPct + rand(2, 26);                   // pist dışı
-    spread    = (Math.random() < 0.5 ? -1 : 1) * mag;
-  }
+  if      (r < 0.90) spread = (Math.random() * 2 - 1) * 2.5;               // ±2.5% → çoğunlukla %87-100
+  else if (r < 0.99) { const m = 3 + Math.random() * 3;                     // ±3-6%  → pad içi kenar
+                        spread = (Math.random() < 0.5 ? -1 : 1) * m; }
+  else               { const m = 7 + Math.random() * 13;                    // ±7-20% → nadir dışarı
+                        spread = (Math.random() < 0.5 ? -1 : 1) * m; }
   leftPct = Math.max(2, Math.min(88, 50 + spread));
 
-  // ── Başarı oranı: paraşüt merkezinin pist merkezine PİKSEL mesafesine göre ──
-  // Landing pad SVG'si: dış halka rx=124px, orta rx=82px, iç rx=42px, merkez rx=12px
-  const screenW    = window.innerWidth || 1920;
-  const padCenter  = screenW / 2;                          // pisin ekran ortası
-  const chutePx    = (leftPct / 100) * screenW;            // paraşüt merkezi (px)
-  const distPx     = Math.abs(chutePx - padCenter);        // pist merkezine mesafe
+  // ── Başarı oranı: gerçek piksel mesafesine göre (pad dış halkası = 124px) ──
+  const screenW  = window.innerWidth || 1920;
+  const distPx   = Math.abs((leftPct / 100) * screenW - screenW / 2);
 
-  if      (distPx <= 12)  rate = 100;                                                     // tam merkez noktası
-  else if (distPx <= 42)  rate = Math.round(99 - ((distPx - 12)  / 30)  * 14);           // iç halka  → %99-%85
-  else if (distPx <= 82)  rate = Math.round(85 - ((distPx - 42)  / 40)  * 30);           // orta halka→ %84-%55
-  else if (distPx <= 124) rate = Math.round(55 - ((distPx - 82)  / 42)  * 35);           // dış halka → %54-%20
-  else                    rate = Math.max(1, Math.round(19 - ((distPx - 124) / 400) * 18)); // pist dışı → %19-%1
+  if      (distPx <= 12)  rate = 100;
+  else if (distPx <= 42)  rate = Math.round(99 - ((distPx - 12)  / 30)  * 9);   // iç halka  → %99-%90
+  else if (distPx <= 82)  rate = Math.round(90 - ((distPx - 42)  / 40)  * 22);  // orta halka→ %89-%68
+  else if (distPx <= 124) rate = Math.round(67 - ((distPx - 82)  / 42)  * 37);  // dış halka → %66-%30
+  else                    rate = Math.max(10, Math.round(28 - ((distPx - 124) / 300) * 18)); // dışarı → %28-%10
 
   const palette = CHUTE_PALETTES[rand(0, CHUTE_PALETTES.length - 1)];
 
