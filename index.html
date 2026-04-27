@@ -64,18 +64,83 @@
     }
 
     .rate-badge {
-      background: rgba(0,0,0,0.65);
+      background: rgba(0,0,0,0.75);
       border-radius: 10px;
-      padding: 3px 10px;
-      font-size: 13px;
-      font-weight: 700;
+      padding: 4px 12px;
+      font-size: 14px;
+      font-weight: 800;
       color: #fff;
       margin-top: 4px;
+      opacity: 0;
+      transition: opacity 0.35s ease;
     }
     .rate-low    { color: #ff4d4d; }
     .rate-mid    { color: #ffa500; }
     .rate-high   { color: #53fc1b; }
     .rate-perfect{ color: #ffd700; text-shadow: 0 0 8px #ffd700; }
+
+    /* ── SCOREBOARD ── */
+    #scoreboard {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 252px;
+      background: rgba(0, 0, 0, 0.78);
+      border: 2px solid #53fc1b;
+      border-radius: 14px;
+      padding: 10px 14px 8px;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      box-shadow: 0 0 18px rgba(83,252,27,0.18);
+    }
+    .sb-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #53fc1b;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(83,252,27,0.7);
+      border-bottom: 1px solid rgba(83,252,27,0.35);
+      padding-bottom: 6px;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+    .sb-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3.5px 0;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .sb-row:last-child { border-bottom: none; }
+    .sb-rank {
+      color: rgba(255,255,255,0.40);
+      font-size: 10.5px;
+      font-weight: 700;
+      min-width: 16px;
+      text-align: right;
+    }
+    .sb-rank-gold   { color: #ffd700 !important; }
+    .sb-rank-silver { color: #c0c0c0 !important; }
+    .sb-rank-bronze { color: #cd7f32 !important; }
+    .sb-user {
+      color: #e8e8e8;
+      font-weight: 700;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+    }
+    .sb-rate {
+      font-weight: 900;
+      font-size: 13px;
+      min-width: 40px;
+      text-align: right;
+    }
 
     /* ── WINNER ── */
     .winner-banner {
@@ -166,6 +231,9 @@
   </div>
 </div>
 
+<!-- ── SCOREBOARD ── -->
+<div id="scoreboard"></div>
+
 
 <script>
 const CONFIG = {
@@ -175,26 +243,37 @@ const CONFIG = {
 };
 
 const CHUTE_PALETTES = [
-  ['#ff3cac','#ffffff'],   // neon pembe - beyaz
-  ['#00d2ff','#ffffff'],   // siyan - beyaz
-  ['#f7971e','#1a1a2e'],   // turuncu - koyu lacivert
-  ['#a855f7','#f0abfc'],   // mor - açık lila
-  ['#00b09b','#ffffff'],   // zümrüt yeşil - beyaz
-  ['#ff6b6b','#ffd93d'],   // mercan - sarı
-  ['#0f3460','#e94560'],   // lacivert - kırmızı
-  ['#43e97b','#38f9d7'],   // yeşil - turkuaz
-  ['#fa709a','#fee140'],   // pembe - altın sarısı
-  ['#30cfd0','#1a1a2e'],   // turkuaz - koyu
-  ['#f093fb','#f5576c'],   // leylak - kırmızı
-  ['#4facfe','#00f2fe'],   // mavi - açık mavi
+  ['#ff3cac','#ffffff'],
+  ['#00d2ff','#ffffff'],
+  ['#f7971e','#1a1a2e'],
+  ['#a855f7','#f0abfc'],
+  ['#00b09b','#ffffff'],
+  ['#ff6b6b','#ffd93d'],
+  ['#0f3460','#e94560'],
+  ['#43e97b','#38f9d7'],
+  ['#fa709a','#fee140'],
+  ['#30cfd0','#1a1a2e'],
+  ['#f093fb','#f5576c'],
+  ['#4facfe','#00f2fe'],
 ];
+
+// ── BAŞARI ORANI (olasılık tabanlı) ──────────────────────────────
+// Ağırlıklar: 100% → 3 | 5-25% → 15 | 25-50% → 25 | 50-75% → 35 | 75-99% → 45
+// Toplam ağırlık: 123
+function calcRate() {
+  const roll = Math.random() * 123;
+  if (roll < 3)   return 100;
+  if (roll < 18)  return rand(5,  25);   // 15 ağırlık
+  if (roll < 43)  return rand(26, 50);   // 25 ağırlık
+  if (roll < 78)  return rand(51, 75);   // 35 ağırlık
+  return               rand(76, 99);     // 45 ağırlık
+}
 
 // ── SVG: Paraşüt + Random Karakter ──────────────────────────────
 function buildSVG(c1, c2) {
   const gid    = 'g'    + c1.slice(1);
   const clipid = 'clip' + c1.slice(1);
 
-  // ── 5 karakter tanımı ──────────────────────────────────────────
   const chars = [
 
     // 0 ── PANDA ──────────────────────────────────────────────────
@@ -334,33 +413,19 @@ function buildSVG(c1, c2) {
 
 // ── PARAŞÜT OLUŞTUR ──────────────────────────────────────────────
 let activeCount = 0;
+const ANIM_DURATION = 20000;
 
 function spawnParachute(username) {
   if (activeCount >= CONFIG.maxParachutes) return;
   activeCount++;
   document.getElementById('landing-pad').style.opacity = '0.88';
 
-  let leftPct, rate;
+  // Görsel konum (sadece animasyon için, orana etkisi yok)
+  const spread  = (Math.random() * 2 - 1) * 7;
+  const leftPct = Math.max(5, Math.min(85, 50 + spread));
 
-  // Dağılım: %90 merkeze çok yakın, %9 pad içi kenar, %1 dışarı
-  const r = Math.random();
-  let spread;
-  if      (r < 0.90) spread = (Math.random() * 2 - 1) * 2.5;               // ±2.5% → çoğunlukla %87-100
-  else if (r < 0.99) { const m = 3 + Math.random() * 3;                     // ±3-6%  → pad içi kenar
-                        spread = (Math.random() < 0.5 ? -1 : 1) * m; }
-  else               { const m = 7 + Math.random() * 13;                    // ±7-20% → nadir dışarı
-                        spread = (Math.random() < 0.5 ? -1 : 1) * m; }
-  leftPct = Math.max(2, Math.min(88, 50 + spread));
-
-  // ── Başarı oranı: gerçek piksel mesafesine göre (pad dış halkası = 124px) ──
-  const screenW  = window.innerWidth || 1920;
-  const distPx   = Math.abs((leftPct / 100) * screenW - screenW / 2);
-
-  if      (distPx <= 12)  rate = 100;
-  else if (distPx <= 42)  rate = Math.round(99 - ((distPx - 12)  / 30)  * 9);   // iç halka  → %99-%90
-  else if (distPx <= 82)  rate = Math.round(90 - ((distPx - 42)  / 40)  * 22);  // orta halka→ %89-%68
-  else if (distPx <= 124) rate = Math.round(67 - ((distPx - 82)  / 42)  * 37);  // dış halka → %66-%30
-  else                    rate = Math.max(10, Math.round(28 - ((distPx - 124) / 300) * 18)); // dışarı → %28-%10
+  // Başarı oranı: tamamen olasılık tabanlı
+  const rate = calcRate();
 
   const palette = CHUTE_PALETTES[rand(0, CHUTE_PALETTES.length - 1)];
 
@@ -377,8 +442,6 @@ function spawnParachute(username) {
 
   const badge = document.createElement('div');
   badge.className = 'rate-badge';
-  badge.style.opacity = '0';
-  badge.style.transition = 'opacity 0.4s ease';
   const sp = document.createElement('span');
   sp.className = getRateClass(rate);
   sp.textContent = rate + '%';
@@ -390,9 +453,14 @@ function spawnParachute(username) {
   wrapper.appendChild(badge);
   document.body.appendChild(wrapper);
 
-  // Badge'i iniş anında göster (%86 = 20s * 0.86 ≈ 17.2s)
-  const ANIM_DURATION = 20000;
-  setTimeout(() => { badge.style.opacity = '1'; }, ANIM_DURATION * 0.86);
+  // İniş anında badge göster → 1.5 saniye görünür → kaybol
+  const LAND_TIME = ANIM_DURATION * 0.86;
+  setTimeout(() => {
+    badge.style.opacity = '1';
+    addToLeaderboard(username, rate);
+    // 1.5 sn sonra badge kaybol
+    setTimeout(() => { badge.style.opacity = '0'; }, 1500);
+  }, LAND_TIME);
 
   wrapper.addEventListener('animationend', () => {
     wrapper.remove();
@@ -400,7 +468,55 @@ function spawnParachute(username) {
     if (activeCount === 0) document.getElementById('landing-pad').style.opacity = '0';
   });
 
-  if (rate === 100) setTimeout(() => showWinner(username), ANIM_DURATION * 0.86 + 500);
+  if (rate === 100) setTimeout(() => showWinner(username), LAND_TIME + 400);
+}
+
+// ── SCOREBOARD ───────────────────────────────────────────────────
+// Her kayıt: { username, rate, expireAt }
+const leaderboardEntries = [];
+
+function addToLeaderboard(username, rate) {
+  const expireAt = Date.now() + 60000; // 1 dakika
+  leaderboardEntries.push({ username, rate, expireAt });
+  renderLeaderboard();
+  // Bu kayıt 1 dakika sonra otomatik silinsin
+  setTimeout(() => {
+    const idx = leaderboardEntries.findIndex(e => e.expireAt === expireAt && e.username === username);
+    if (idx !== -1) leaderboardEntries.splice(idx, 1);
+    renderLeaderboard();
+  }, 60000);
+}
+
+function renderLeaderboard() {
+  const el = document.getElementById('scoreboard');
+  // Süresi dolmuş kayıtları temizle
+  const now = Date.now();
+  for (let i = leaderboardEntries.length - 1; i >= 0; i--) {
+    if (leaderboardEntries[i].expireAt <= now) leaderboardEntries.splice(i, 1);
+  }
+
+  if (leaderboardEntries.length === 0) {
+    el.style.opacity = '0';
+    return;
+  }
+
+  // En yüksekten en aza sırala, top 10
+  const sorted = [...leaderboardEntries]
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 10);
+
+  const rows = sorted.map((e, i) => {
+    const rankClass = i === 0 ? 'sb-rank-gold' : i === 1 ? 'sb-rank-silver' : i === 2 ? 'sb-rank-bronze' : '';
+    const medal     = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+    return `<div class="sb-row">
+      <span class="sb-rank ${rankClass}">${medal}</span>
+      <span class="sb-user">@${e.username}</span>
+      <span class="sb-rate ${getRateClass(e.rate)}">${e.rate}%</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="sb-title">🏆 SCOREBOARD</div>${rows}`;
+  el.style.opacity = '1';
 }
 
 // ── WINNER ───────────────────────────────────────────────────────
@@ -455,13 +571,21 @@ function rand(min, max) { return Math.floor(Math.random()*(max-min+1))+min; }
 
 function getRateClass(r) {
   if (r === 100) return 'rate-perfect';
-  if (r >= 70)   return 'rate-high';
-  if (r >= 40)   return 'rate-mid';
+  if (r >= 75)   return 'rate-high';
+  if (r >= 50)   return 'rate-mid';
   return 'rate-low';
 }
 
+// ── COOLDOWN: aynı kişi 1 dakika içinde tekrar inemez ─────────────
+const cooldowns = new Map(); // username → timestamp
+
 function handleChatMessage(username, message) {
-  if (message.trim().toLowerCase() === CONFIG.command.toLowerCase()) spawnParachute(username);
+  if (message.trim().toLowerCase() !== CONFIG.command.toLowerCase()) return;
+  const now = Date.now();
+  const last = cooldowns.get(username);
+  if (last && now - last < 60000) return; // 1 dakika cooldown
+  cooldowns.set(username, now);
+  spawnParachute(username);
 }
 
 
@@ -469,7 +593,6 @@ function handleChatMessage(username, message) {
 connectToKick(CONFIG.kickChannel);
 
 async function connectToKick(channelName) {
-  // Kick, WebSocket için sayısal chatroom ID gerektirir — önce API'den çek
   let chatroomId;
   try {
     const res  = await fetch(`https://kick.com/api/v2/channels/${channelName}`);
